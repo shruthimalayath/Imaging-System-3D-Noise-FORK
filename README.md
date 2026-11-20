@@ -15,3 +15,14 @@ Calculate all spatio-temporal noise components from the image data cube to obtai
 
 ## set_3dnoise:
 Add synthetic noise of any spatio-temporal distribution to pre-existing synthetic or real images. This might be useful, for example, for creating or augmenting image data for use in training a computer vision AI model
+
+
+$flat = "C:\Users\SMalayat\Noise_Simulator\Imaging-System-3D-Noise-FORK\seq_40"
+$clean = "C:\Users\SMalayat\Noise_Simulator\Imaging-System-3D-Noise-FORK\seq_1"
+$out = "C:\Users\SMalayat\Noise_Simulator\Imaging-System-3D-Noise-FORK\seq_40_noised"
+New-Item -ItemType Directory -Force $out | Out-Null
+
+Get-ChildItem $clean -File | Where-Object { $_.Extension -in ".tif", ".tiff" } | ForEach-Object {
+    $destination = Join-Path $out $_.Name
+    python main.py apply $flat $_.FullName --level medium --output $destination
+}

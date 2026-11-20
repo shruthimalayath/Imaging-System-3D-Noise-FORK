@@ -18,24 +18,32 @@ import numpy as np
 # This is a method that allows you to put all your tiff data files in a single
 # directory and have them read into a data stack.
 def make_tiff_data_cube(directory_path):
-    
-    assert isinstance(directory_path, str), "File path must be a string"
-    
-    imlist = []
-    
-    ctr = 0
-    for file in os.listdir(directory_path):
-        if file.endswith(".tif"):
-            #files = files.append(os.path.join(directory_path, file))
-            imlist[ctr] = Image.open(file)
-            ctr+=1
-            
-    data_cube = np.zeros((imlist[0].shape[0], imlist[0].shape[1], ctr-1))
-    
-    for i in range(ctr):
-        data_cube[:,:,i] = imlist[i]
-        
-    return data_cube
+  if not isinstance(directory_path, str):
+    raise TypeError("directory_path must be a string")
+
+  image_paths = sorted(
+    os.path.join(directory_path, filename)
+    for filename in os.listdir(directory_path)
+    if filename.lower().endswith((".tif", ".tiff"))
+  )
+  if not image_paths:
+    raise ValueError(f"No TIFF images found in {directory_path!r}")
+
+  images = []
+  image_shape = None
+  for image_path in image_paths:
+    with Image.open(image_path) as image:
+      image_data = np.array(image)
+
+    if image_data.ndim != 2:
+      raise ValueError(f"TIFF image must be grayscale: {image_path!r}")
+    if image_shape is None:
+      image_shape = image_data.shape
+    elif image_data.shape != image_shape:
+      raise ValueError("All TIFF images must have the same dimensions")
+    images.append(image_data)
+
+  return np.stack(images, axis=0)
     
     
 # Calculate 3D noise components
